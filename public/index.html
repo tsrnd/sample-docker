@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>WebCam</title>
+    <script src="//code.jquery.com/jquery-2.2.1.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/stream-client.js"></script>
+</head>
+<body>
+    <a onclick="view(); return false">View</a>
+    <br/>
+    <br/>
+    <a onclick="stream(); return false">Stream</a>
+    <div id="logger"></div>
+    <video style="display: none;" id="video"> </video>
+    <canvas id="prev"></canvas>
+    <img id="img">
+</body>
+</html>

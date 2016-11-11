@@ -1,7 +1,7 @@
 var fs = require('fs');
 var express = require("express");
 
-var Log = require("log"),
+var Log = require("log");
 log = new Log("debug");
 
 // app
@@ -13,19 +13,19 @@ app.get("/", function(req, res) {
 });
 
 // server
-var port = process.env.PORT || 8888;
-var ssl = process.env.SSL ? 1 : 0;
+var port = process.env.PORT || 3000;
+var ssl = Boolean(process.env.SSL);
 
-if (ssl==1) {
+if (ssl) {
     var https = require('https');
     var server = https.createServer({
-        key: fs.readFileSync('/var/ssl/cert.key'),
-        cert: fs.readFileSync('/var/ssl/cert.crt')
+        key: fs.readFileSync(process.env.SSL_KEY),
+        cert: fs.readFileSync(process.env.SSL_CER)
     }, app);
-    console.log("Use SSL");
+    log.info("Start HTTPS");
 } else {
     var server = require('http').createServer(app);
-    console.log("Start HTTP");
+    log.info("Start HTTP");
 }
 
 server.listen(port, function() {

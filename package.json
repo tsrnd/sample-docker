@@ -21,7 +21,7 @@
     "ws": "^1.1.1"
   },
   "scripts": {
-    "start": "eval $(scripts/export-env) && npm prune && npm install && node server.js",
+    "start": "eval $(bash scripts/export-env.sh) && npm prune && npm install && node server.js",
     "test": "mocha"
   }
 }

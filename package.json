@@ -27,9 +27,8 @@
     "ws": "^1.1.1"
   },
   "scripts": {
-    "start": "bash scripts/start.sh",
-    "test": "mocha",
-    "stop": "bash scripts/stop.sh"
+    "start": "bash scripts/npm-start.sh",
+    "test": "mocha"
   },
   "devDependencies": {
     "eslint": "^3.10.0",

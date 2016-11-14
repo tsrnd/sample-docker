@@ -5,8 +5,14 @@
   "description": "auth server",
   "license": "MIT",
   "repository": "https+git://github.com/asiantechinc/auth-server.git",
-  "engines": {"node": "^7.1.0", "npm": "^3.10.9"},
-  "os": ["linux", "darwin"],
+  "engines": {
+    "node": "^7.1.0",
+    "npm": "^3.10.9"
+  },
+  "os": [
+    "linux",
+    "darwin"
+  ],
   "cpu": "x64",
   "dependencies": {
     "chai": "^3.5.0",
@@ -21,7 +27,13 @@
     "ws": "^1.1.1"
   },
   "scripts": {
-    "start": "eval $(bash scripts/export-env.sh) && npm prune && npm install && node server.js",
-    "test": "mocha"
+    "start": "bash scripts/start.sh",
+    "test": "mocha",
+    "stop": "bash scripts/stop.sh"
+  },
+  "devDependencies": {
+    "eslint": "^3.10.0",
+    "@types/node": "^6.0.46",
+    "typescript": "^2.0.9"
   }
 }

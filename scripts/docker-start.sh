@@ -8,7 +8,7 @@ get_word() {
 APP='auth-server'
 IMAGE=$APP
 
-docker-machine start                
+docker-machine start || true                
 eval $(docker-machine env)
 
 if [[ $(docker images -a | grep $APP) ]]; then

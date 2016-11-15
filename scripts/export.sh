@@ -1,6 +1,6 @@
 #!/bin/bash
-set -eu -o pipefail
+set -eux -o pipefail
 
 while read -r LINE; do
-    echo "export $LINE"
+    [[ -z "$LINE" ]] || echo "export $LINE"
 done < $1

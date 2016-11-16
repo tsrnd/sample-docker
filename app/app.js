@@ -9,7 +9,7 @@ var app = new express();
 app.use(express.static(__dirname + '/public'));
 
 app.get("/", function(req, res) {
-    res.redirect("stream/index.html");
+    res.redirect("index.html");
 });
 
 // server

@@ -1,0 +1,6 @@
+apps:
+  - script   : 'app.js'
+    name     : 'eznode/stream'
+    exec_mode: 'cluster'
+    instances: 2
+  - script   : 'worker.js'

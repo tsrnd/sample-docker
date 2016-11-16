@@ -14,9 +14,9 @@ app.get("/", function(req, res) {
 
 // server
 var port = process.env.PORT || 3000;
-var ssl = Boolean(process.env.SSL);
+var ssl = process.env.SSL;
 
-if (ssl) {
+if (ssl == 'true' || ssl == '1') {
     var https = require('https');
     var server = https.createServer({
         key: fs.readFileSync(process.env.SSL_KEY),

@@ -1,22 +1,31 @@
 nginx:
   restart: always
-  build: nginx    
+  build: ./nginx
   ports:
-    - "80:80"
-    - "443:443"
-  volumes:
-    - /www/public
-  volumes_from: 
-    - usr/src/app
+    - 80:80
   links:
-    - app:app
-app:
-  build: app
-  ports:
-    - "3000:3000"
-  volumes:
-    - usr/src/app:usr/src/app
+    - node1
+    - node2
+    - node3
+node1:
+  build: ./node
+  ports: 
+    - 3000
   links:
-    - redis 
-redis:
-  image: redis
+    - db
+node2:
+  build: ./node
+  ports: 
+    - 3000
+  links:
+    - db
+node3:
+  build: ./node
+  ports: 
+    - 3000
+  links:
+    - db
+db:
+  image: redis:3.2.5
+  ports: 
+  - 6379

@@ -13,21 +13,10 @@ app.get("/", function(req, res) {
 });
 
 // server
-var port = process.env.PORT || 3000;
-var ssl = process.env.SSL;
+var server = require('http').createServer(app);
+log.info("Started NodeJS Server");
 
-if (ssl == 'true' || ssl == '1') {
-    var https = require('https');
-    var server = https.createServer({
-        key: fs.readFileSync(process.env.SSL_KEY),
-        cert: fs.readFileSync(process.env.SSL_CER)
-    }, app);
-    log.info("Start HTTPS");
-} else {
-    var server = require('http').createServer(app);
-    log.info("Start HTTP");
-}
-
+var port = 3000;
 server.listen(port, function() {
     log.info("Listening port %s", port);
 });

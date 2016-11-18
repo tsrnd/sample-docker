@@ -7,9 +7,9 @@ function logger(msg) {
 function stream() {
     var canv = document.getElementById("prev"),
     context = canv.getContext("2d"),
-    video = document.getElementById("video"),
+    video = document.getElementById("video");
 
-    canv.width = 320 ;
+    canv.width = 320;
     canv.height = 240;
 
     context.width = canv.width;

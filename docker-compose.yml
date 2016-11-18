@@ -1,31 +1,17 @@
 nginx:
   build: ./nginx
   ports:
-    - "80:80"
-    - "443:443"
+    - 80:80
+    - 443:443
   links:
-    - node1
-    - node2
-    - node3
-node1:
+    - node
+node:
   build: ./node
   ports: 
-    - "3000"
+    - 3000:3000
   links:
-    - db
-node2:
-  build: ./node
+    - redis
+redis:
+  build: ./redis
   ports: 
-    - "3000"
-  links:
-    - db
-node3:
-  build: ./node
-  ports: 
-    - "3000"
-  links:
-    - db
-db:
-  image: redis:3.2.5
-  ports: 
-  - "6379:6379"
+    - 6379:6379

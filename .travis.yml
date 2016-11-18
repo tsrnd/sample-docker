@@ -1,9 +1,15 @@
 language: node_js
-sudo: false
+sudo: required
+services:
+  - docker
 node_js:
   - "6"
   - "7"
+before_install:
+  - bash ./start
+script:
+  - bash ./test
 notifications:
   email: false
 after_success:
-  - ./node_modules/.bin/codecov
+  - ./node/node_modules/.bin/codecov

@@ -10,30 +10,31 @@
     "npm": "^3.10.9"
   },
   "os": [
-    "linux",
-    "darwin"
+    "linux"
   ],
   "cpu": "x64",
   "dependencies": {
+    "@types/node": "^6.0.48",
+    "body-parser": "^1.15.2",
     "chai": "^3.5.0",
     "codecov": "^1.0.1",
+    "connect-redis": "^3.1.0",
+    "eslint": "^3.10.0",
     "express": "^4.14.0",
+    "express-handlebars": "^3.0.0",
+    "express-session": "^1.14.2",
     "log": "^1.4.0",
     "mocha": "^3.1.2",
     "mongodb": "^2.2.11",
     "passport": "^0.3.2",
+    "passport-local": "^1.0.0",
     "pm2": "^2.1.5",
     "sinon": "^1.17.6",
     "socket.io": "^1.5.1",
-    "socket.io-stream": "^0.9.1",
     "ws": "^1.1.1"
   },
   "scripts": {
-    "test": "mocha"
-  },
-  "devDependencies": {
-    "eslint": "^3.10.0",
-    "@types/node": "^6.0.46",
-    "typescript": "^2.0.9"
+    "test": "mocha",
+    "start": "node index.js"
   }
 }

@@ -15,4 +15,4 @@ ADD . /src
 # expose port
 EXPOSE 3000
 
-CMD [ "nodemon", "/src/server.js" ]
+CMD [ "nodemon", "/src/index.js" ]

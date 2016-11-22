@@ -14,13 +14,13 @@ app.use(urlParser)
 
 require('./auth').init(app)
 
-const store = new Redis({url: config.redis.store.url})
+const store = new Redis({ url: config.redis.store.url })
 
 app.use(session({
-    store: store,
-    secret: config.redis.store.secret,
-    resave: false,
-    saveUninitialized: false
+  store: store,
+  secret: config.redis.store.secret,
+  resave: false,
+  saveUninitialized: false,
 }))
 
 app.use(passport.initialize())
@@ -30,7 +30,7 @@ app.engine('.hbs', exphbs({
   defaultLayout: 'layout',
   extname: '.hbs',
   layoutsDir: path.join(__dirname),
-  partialsDir: path.join(__dirname)
+  partialsDir: path.join(__dirname),
 }))
 
 app.set('view engine', '.hbs')

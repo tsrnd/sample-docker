@@ -29,6 +29,10 @@ if [[ $OS == Linux* ]]; then
 
   # Start the Docker daemon.
   sudo service docker start
+
+  # Install Docker Compose
+  sudo curl -L "https://github.com/docker/compose/releases/download/1.8.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+  sudo chmod +x /usr/local/bin/docker-compose  
 else
   # Grant permission.
   sudo chown -R $(whoami):admin '/usr/local'

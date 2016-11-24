@@ -9,11 +9,14 @@
   },
   "rules": {
     "indent": [
-      "error",
-      2
+      "warn",
+      2,
+      {
+        "SwitchCase": 1
+      }
     ],
     "linebreak-style": [
-      "error",
+      "warn",
       "unix"
     ],
     "quotes": [
@@ -21,7 +24,7 @@
       "single"
     ],
     "semi": [
-      "error",
+      "warn",
       "never"
     ]
   }

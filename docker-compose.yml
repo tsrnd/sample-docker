@@ -1,24 +1,24 @@
-nginx:
-  restart: always
-  build: ./nginx
+proxy:
+#  restart: always
+  build: ./proxy
   ports:
     - 80:80
     - 443:443
   links:
-    - node
-node:
-  build: ./node
-  ports: 
-    - 3000:3000
+    - app1
+    - app2
+    - app3
+app1:
+  build: ./app
   links:
-    - redis
-node:
-  build: ./node
-  ports: 
-    - 3000:3000
+    - db
+app2:
+  build: ./app
   links:
-    - redis
-redis:
-  build: ./redis
-  ports: 
-    - 6379:6379
+    - db
+app3:
+  build: ./app
+  links:
+    - db
+db:
+  build: ./db

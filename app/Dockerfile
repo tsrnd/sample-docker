@@ -15,4 +15,4 @@ ADD . /src
 # expose port
 EXPOSE 3000
 
-CMD [ "nodemon", "/src/index.js" ]
+CMD [ "nodemon", "--exec npm start" ]

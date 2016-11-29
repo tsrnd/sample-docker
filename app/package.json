@@ -3,21 +3,24 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "prestart": "eslint .",
-    "start": "node ./bin/www"
+    "build": "tsc",
+    "prestart": "npm run build",
+    "start": "$(node bin)/ts-node ./bin/server.ts"
   },
   "dependencies": {
     "body-parser": "~1.15.2",
     "connect-redis": "^3.1.0",
     "cookie-parser": "~1.4.3",
     "debug": "~2.2.0",
-    "express": "~4.14.0",
+    "eslint": "^3.11.0",
+    "express": "^4.14.0",
     "hbs": "~4.0.1",
     "morgan": "~1.7.0",
     "node-sass-middleware": "0.9.8",
     "passport-local": "^1.0.0",
     "redis": "^2.6.3",
     "serve-favicon": "~2.3.0",
-    "typescript": "^2.0.10"
+    "ts-node": "^1.7.0",
+    "tslint": "^4.0.2"
   }
 }

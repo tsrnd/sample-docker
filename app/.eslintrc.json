@@ -26,6 +26,9 @@
     "semi": [
       "warn",
       "never"
+    ],
+    "no-var": [
+      "error"
     ]
   }
 }

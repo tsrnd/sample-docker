@@ -1,2 +1,2 @@
 Dockerfile
-./ssl/self-signed.sh
+ssl/self-signed.sh

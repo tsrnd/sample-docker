@@ -8,13 +8,7 @@
     "sourceType": "module"
   },
   "rules": {
-    "indent": [
-      "warn",
-      2,
-      {
-        "SwitchCase": 1
-      }
-    ],
+    "indent": 0,
     "linebreak-style": [
       "warn",
       "unix"
@@ -25,10 +19,11 @@
     ],
     "semi": [
       "warn",
-      "never"
+      "always"
     ],
     "no-var": [
       "error"
-    ]
+    ],
+    "no-unused-vars": "off"
   }
 }

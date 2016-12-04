@@ -8,3 +8,4 @@ router.post("", (req, res) => {
     res.json(req.headers);
 });
 module.exports = router;
+//# sourceMappingURL=index.js.map

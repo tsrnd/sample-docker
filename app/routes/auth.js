@@ -7,13 +7,12 @@ router.use((req, res, next) => {
     next();
 });
 router.get("/", (req, res, next) => {
-    const err = new HTTPError();
-    err.status = 401;
+    const err = new HTTPError(401);
     next(err);
 });
 router.post("/", (req, res, next) => {
-    const err = new HTTPError();
-    err.status = 400;
+    const err = new HTTPError(400);
     next(err);
 });
 module.exports = router;
+//# sourceMappingURL=auth.js.map

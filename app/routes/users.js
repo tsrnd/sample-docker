@@ -10,3 +10,4 @@ router.get("/:userId", (req, res) => {
     });
 });
 module.exports = router;
+//# sourceMappingURL=users.js.map

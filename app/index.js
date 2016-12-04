@@ -7,6 +7,7 @@ const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const console = require("console");
 const http = require("http");
+const sass = require("node-sass-middleware");
 const app = express();
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "hbs");
@@ -15,7 +16,7 @@ app.use(logger("dev"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(require("node-sass-middleware")({
+app.use(sass({
     src: path.join(__dirname, "public"),
     dest: path.join(__dirname, "public"),
     indentedSyntax: true,
@@ -26,8 +27,7 @@ app.use("/", require("./routes/index"));
 app.use("/auth", require("./routes/auth"));
 app.use("/users", require("./routes/users"));
 app.use((req, res, next) => {
-    const err = new HTTPError();
-    err.status = 404;
+    const err = new HTTPError(404);
     next(err);
 });
 app.use((err, req, res) => {
@@ -68,3 +68,4 @@ server.on("listening", () => {
         : "port " + addr.port;
     console.log("Listening on " + bind);
 });
+//# sourceMappingURL=index.js.map

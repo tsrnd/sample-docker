@@ -7,10 +7,15 @@
     "noImplicitUseStrict": true,
     "removeComments": true,
     "preserveConstEnums": true,
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "sourceMap": true,
+    "inlineSources": true,
+    "experimentalDecorators": true,
+    "typeRoots": [
+      "node_modules/@types"
+    ]
   },
   "exclude": [
-    "node_modules",
-    "vendor"
+    "node_modules"
   ]
 }

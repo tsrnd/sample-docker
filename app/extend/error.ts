@@ -1,22 +1,23 @@
-/**
- * HTTP Error
- */
-class HTTPError extends Error {
-    status: number
+"use strict";
 
-    constructor() {
-        super()
+class HTTPError extends Error {
+    public status: number;
+
+    constructor(status: number) {
+        super();
+        this.status = status;
+        this.stack = new Error().stack;
     }
 }
 
-/**
- * System Error
- */
 class SystemError extends Error {
-    code: string
-    syscall: string
+    public code: string;
+    public syscall: string;
 
-    constructor() {
-        super()
+    constructor(code: string, syscall: string) {
+        super();
+        this.code = code;
+        this.syscall = syscall;
+        this.stack = new Error().stack;
     }
 }

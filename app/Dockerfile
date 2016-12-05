@@ -1,8 +1,5 @@
 FROM node:7.1.0
 
-# install nodemon
-RUN npm install -g nodemon
-
 # provide cached layer for node_modules
 ADD package.json /tmp/package.json
 RUN cd /tmp && npm install
@@ -15,4 +12,4 @@ ADD . /src
 # expose port
 EXPOSE 3000
 
-CMD [ "nodemon", "--exec npm start" ]
+CMD [ "npm", "start" ]

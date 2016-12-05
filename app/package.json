@@ -3,16 +3,15 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "node_modules/.bin/tsc",
-    "start": "nodemon index.js"
+    "start": "nodemon build/index.js"
   },
   "dependencies": {
-    "@types/node-sass-middleware": "0.0.29",
     "body-parser": "^1.15.2",
     "connect-redis": "^3.1.0",
     "cookie-parser": "^1.4.3",
     "debug": "^2.3.3",
     "express": "^4.14.0",
+    "http-status": "^0.2.3",
     "morgan": "^1.7.0",
     "node-sass-middleware": "^0.10.0",
     "nodemon": "^1.11.0",
@@ -27,6 +26,7 @@
     "@types/debug": "^0.0.29",
     "@types/express": "^4.0.34",
     "@types/morgan": "^1.7.32",
+    "@types/node-sass-middleware": "0.0.29",
     "@types/passport": "^0.2.34",
     "@types/passport-local": "^1.0.29",
     "@types/serve-favicon": "^2.2.28",

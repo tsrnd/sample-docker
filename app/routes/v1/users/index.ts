@@ -2,7 +2,7 @@
 
 import * as express from 'express';
 import * as HttpStatus from 'http-status';
-import {response} from '../../extend';
+import {response} from '../../../extend';
 const router = express.Router();
 
 router.get('/', (req, res) => {

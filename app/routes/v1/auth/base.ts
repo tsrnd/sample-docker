@@ -3,7 +3,7 @@
 import * as express from 'express';
 import * as console from 'console';
 import * as HttpStatus from 'http-status';
-import {response} from '../../extend';
+import {response} from '../../../extend';
 
 const router = express.Router();
 

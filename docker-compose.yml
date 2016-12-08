@@ -5,19 +5,19 @@ proxy:
     - 80:80
     - 443:443
   links:
-    - app1
-    - app2
-    - app3
-app1:
-  build: ./app
+    - web
+    - admin
+    - api
+web:
+  build: ./web
   links:
     - db
-app2:
-  build: ./app
+admin:
+  build: ./admin
   links:
     - db
-app3:
-  build: ./app
+api:
+  build: ./api
   links:
     - db
 db:

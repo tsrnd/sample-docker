@@ -1,14 +1,11 @@
 'use strict';
 
 import * as express from 'express';
-import * as path from 'path';
-import * as favicon from 'serve-favicon';
 import * as logger from 'morgan';
 import * as cookieParser from 'cookie-parser';
 import * as bodyParser from 'body-parser';
 import * as console from 'console';
 import * as http from 'http';
-import * as sass from 'node-sass-middleware';
 import {errors} from './extend';
 
 const app = express();
@@ -21,17 +18,9 @@ app.use('/v1', require('./routes/v1'));
 
 // middlewares
 (env === 'test') || app.use(logger('dev'));
-app.use(favicon(path.join(__dirname, '../public', 'images/favicon.ico')));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(cookieParser());
-app.use(sass({
-    src: path.join(__dirname, 'public'),
-    dest: path.join(__dirname, 'public'),
-    indentedSyntax: true,
-    sourceMap: true
-}));
-app.use(express.static(path.join(__dirname, 'public')));
 
 app.use([errors.error400, errors.error500]);
 

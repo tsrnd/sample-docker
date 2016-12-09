@@ -7,4 +7,5 @@ COPY . /usr/src/
 CMD cd /usr/src && composer install
 WORKDIR /usr/src
 
+EXPOSE 9000
 CMD php artisan serve --port=9000

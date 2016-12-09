@@ -1,6 +1,8 @@
 proxy:
 #  restart: always
   build: ./proxy
+  volumes:
+    - ./web/public:/usr/src
   ports:
     - 80:80
     - 443:443
@@ -10,16 +12,18 @@ proxy:
 web:
   build: ./web
   ports:
-    - 5000:5000
+    - 9000
   links:
-    - db
+    - data
 api:
   build: ./api
   ports:
-    - 3000:3000
+    - 3000
   links:
-    - db
-db:
-  build: ./db
+    - data
+data:
+  build: ./data
+  volumes:
+    - /data/redis:/data
   ports:
-    - 6379:6379
+    - 6379

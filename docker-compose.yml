@@ -1,24 +1,29 @@
 proxy:
 #  restart: always
   build: ./proxy
+  volumes:
+    - ./web/public:/usr/src
   ports:
     - 80:80
     - 443:443
   links:
-    - app1
-    - app2
-    - app3
-app1:
-  build: ./app
+    - web
+    - api
+web:
+  build: ./web
+  ports:
+    - 9000
   links:
-    - db
-app2:
-  build: ./app
+    - data
+api:
+  build: ./api
+  ports:
+    - 3000
   links:
-    - db
-app3:
-  build: ./app
-  links:
-    - db
-db:
-  build: ./db
+    - data
+data:
+  build: ./data
+  volumes:
+    - /data/redis:/data
+  ports:
+    - 6379

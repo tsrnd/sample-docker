@@ -7,5 +7,5 @@ COPY . /var/www/
 CMD cd /var/www && composer install
 WORKDIR /var/www
 
-EXPOSE 7000
+EXPOSE 5000
 CMD php artisan serve --port=5000

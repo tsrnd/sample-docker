@@ -6,19 +6,20 @@ proxy:
     - 443:443
   links:
     - web
-    - admin
     - api
 web:
   build: ./web
-  links:
-    - db
-admin:
-  build: ./admin
+  ports:
+    - 5000:5000
   links:
     - db
 api:
   build: ./api
+  ports:
+    - 3000:3000
   links:
     - db
 db:
   build: ./db
+  ports:
+    - 6379:6379

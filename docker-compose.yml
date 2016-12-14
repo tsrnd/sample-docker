@@ -5,18 +5,20 @@ proxy:
     - 80:80
     - 443:443
   links:
-    - web
-    - api
-web:
-  build: ./web
+    - php
+    - node
+  volumes:
+    - ./php:/var/www/html
+php:
+  build: ./php
   ports:
-    - 9000:9000
+    - 9000
   links:
     - data
-api:
-  build: ./api
+node:
+  build: ./node
   ports:
-    - 3000:3000
+    - 3000
   links:
     - data
 data:
@@ -24,4 +26,4 @@ data:
   volumes:
     - /data/redis:/data
   ports:
-    - 6379:6379
+    - 6379

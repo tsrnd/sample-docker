@@ -2,3 +2,5 @@
 .tmp
 tmp
 temp
+www/storage
+www/storage/*.key

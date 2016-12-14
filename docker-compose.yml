@@ -1,22 +1,22 @@
 proxy:
 #  restart: always
   build: ./proxy
-  volumes:
-    - ./web/public:/usr/src
   ports:
     - 80:80
     - 443:443
   links:
-    - web
-    - api
-web:
-  build: ./web
+    - php
+    - node
+  volumes:
+    - ./php:/var/www/html
+php:
+  build: ./php
   ports:
     - 9000
   links:
     - data
-api:
-  build: ./api
+node:
+  build: ./node
   ports:
     - 3000
   links:

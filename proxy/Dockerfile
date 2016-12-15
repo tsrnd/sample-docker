@@ -1,4 +1,5 @@
 FROM nginx:1.11.5
+MAINTAINER DaoNV "daonv@asiantech.vn"
 
 COPY . /etc/nginx/
 

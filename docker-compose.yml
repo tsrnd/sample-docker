@@ -7,23 +7,25 @@ proxy:
   links:
     - php
     - node
-  volumes:
-    - ./php:/var/www/html
 php:
   build: ./php
   ports:
-    - 9000
+    - 9000:9000
   links:
     - data
+  volumes: 
+    - /cache/php:/cache/php
 node:
   build: ./node
   ports:
-    - 3000
+    - 3000:3000
   links:
     - data
+  volumes: 
+    - /cache/node:/cache/node
 data:
   build: ./data
   volumes:
     - /data/redis:/data
   ports:
-    - 6379
+    - 6379:6379

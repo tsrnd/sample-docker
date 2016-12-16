@@ -24,8 +24,8 @@ if [[ $OS == Linux* ]]; then
         -o /usr/local/bin/docker-compose
     sudo chmod +x /usr/local/bin/docker-compose  
     # NodeJS
-    groupadd --gid 1000 node \
-        && useradd --uid 1000 --gid node --shell /bin/bash --create-home node
+    groupadd --gid 1000 node
+    useradd --uid 1000 --gid node --shell /bin/bash --create-home node
 
     set -ex \
         && for key in \
@@ -62,19 +62,19 @@ if [[ $OS == Linux* ]]; then
     # Task
     yarn add -g gulp
 else
-  # Homebrew
-  sudo chown -R $(whoami):admin '/usr/local'
-  if ! which brew > /dev/null; then
-    /usr/bin/ruby -e "$(curl -fsSL 'https://raw.githubusercontent.com/Homebrew/install/master/install')"
-  fi
-  # Docker
-  brew install docker
+    # Homebrew
+    sudo chown -R $(whoami):admin '/usr/local'
+    if ! which brew > /dev/null; then
+        /usr/bin/ruby -e "$(curl -fsSL 'https://raw.githubusercontent.com/Homebrew/install/master/install')"
+    fi
+    # Docker
+    brew install docker
 
-  # NodeJS
+    # NodeJS
 
-  # Yarn
-  brew install yarn
+     # Yarn
+    brew install yarn
 
-  # Task
+    # Task
     yarn add -g gulp
 fi

@@ -2,7 +2,7 @@ FROM node:7.1.0
 MAINTAINER DaoNV "daonv@asiantech.vn"
 
 ENV WORK_DIR='/usr/src'
-ENV CACHE_DIR='/cache/php'
+ENV CACHE_DIR='/cache/chat-app'
 
 RUN mkdir -p "$WORK_DIR"
 

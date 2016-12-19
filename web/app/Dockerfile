@@ -64,5 +64,8 @@ RUN composer install
 RUN yes | cp -rf vendor "$CACHE_DIR"
 CMD chmod -R 775 storage
 
+COPY ./php-fpm.conf /etc/php7/php-fpm.conf
+RUN ln -s /usr/bin/php7 /usr/bin/php
+
 EXPOSE 9000
 CMD ["yarn", "start"]

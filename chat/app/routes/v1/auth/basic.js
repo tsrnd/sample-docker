@@ -3,18 +3,18 @@
 const express = require("express");
 const console = require("console");
 const HttpStatus = require("http-status");
-const extend = require("../../../extend");
+const rep = require("../../../ext").rep;
 const router = express.Router();
 
 router.post('/', (req, res, next) => {
     if (req.params.username && req.params.password) {
-        extend.response(res, HttpStatus.OK, {
+        rep(res, HttpStatus.OK, {
             username: req.params.username,
             password: req.params.password
         });
     }
     else {
-        extend.response(res, HttpStatus.UNAUTHORIZED);
+        rep(res, HttpStatus.UNAUTHORIZED);
     }
 });
 

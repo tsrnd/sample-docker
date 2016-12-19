@@ -1,11 +1,11 @@
 'use strict';
 const express = require("express");
 const HttpStatus = require("http-status");
-const extend = require("../../extend");
+const rep = require("../../ext").rep;
 const router = express.Router();
 
 router.get('/', (req, res, next) => {
-    extend.response(res, HttpStatus.OK);
+    rep(res, HttpStatus.OK);
 });
 
 router.use('/auth', require('./auth'));

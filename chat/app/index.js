@@ -6,19 +6,24 @@ const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const console = require("console");
 const http = require("http");
-const extend = require("./extend");
+const ext = require("./ext");
 const app = express();
 const env = process.env.NODE_ENV;
 
 env === 'production' && app.disable('verbose extend') || app.enable('verbose extend');
 
 app.use('/v1', require('./routes/v1'));
+// app.use('/', (req, res, next) => {
+//     ext.res(res, 200);
+// });
 (env === 'test') || app.use(logger('dev'));
 
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: false}));
+app.use(bodyParser.urlencoded({
+    extended: false
+}));
 app.use(cookieParser());
-app.use([extend.errors.error400, extend.errors.error500]);
+app.use([ext.error(404), ext.error(500)]);
 
 const port = process.env.PORT || '3000';
 app.set('port', port);
@@ -29,9 +34,9 @@ server.on('error', (err) => {
     if (err.syscall !== 'listen') {
         throw err;
     }
-    const bind = typeof port === 'string'
-        ? 'Pipe ' + port
-        : 'Port ' + port;
+    const bind = typeof port === 'string' ?
+        'Pipe ' + port :
+        'Port ' + port;
     switch (err.code) {
         case 'EACCES':
             console.error(bind + ' requires elevated privileges');
@@ -47,8 +52,8 @@ server.on('error', (err) => {
 });
 server.on('listening', () => {
     const addr = server.address();
-    const bind = typeof addr === 'string'
-        ? 'pipe ' + addr
-        : 'port ' + addr.port;
+    const bind = typeof addr === 'string' ?
+        'pipe ' + addr :
+        'port ' + addr.port;
     console.log('Listening on ' + bind);
 });

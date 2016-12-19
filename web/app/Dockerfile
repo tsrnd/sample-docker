@@ -2,7 +2,7 @@ FROM php:7.1.0
 MAINTAINER DaoNV "daonv@asiantech.vn"
 
 ENV WORK_DIR='/var/www/html'
-ENV CACHE_DIR='/cache/php'
+ENV CACHE_DIR='/cache/web-app'
 
 RUN mkdir -p "$WORK_DIR"
 

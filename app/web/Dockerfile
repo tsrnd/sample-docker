@@ -1,8 +1,8 @@
-FROM php:7.1.0
+FROM 172.16.110.141:5000/php:7.1.0
 MAINTAINER DaoNV "daonv@asiantech.vn"
 
 ENV WORK_DIR='/var/www/html'
-ENV CACHE_DIR='/cache/web-app'
+ENV CACHE_DIR='/cache/app/web'
 
 RUN mkdir -p "$WORK_DIR"
 

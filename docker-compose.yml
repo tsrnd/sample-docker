@@ -1,0 +1,49 @@
+version: '2'
+
+services:
+    proxy:
+        image: 172.16.110.141:5000/proxy:0.0.0
+        container_name: proxy
+        ports: 
+            - "80:80"
+        depends_on: 
+            - app-chat
+        networks: 
+            - front-tier
+
+    app-chat:
+        image: 172.16.110.141:5000/app-chat:0.0.0
+        container_name: app-chat
+        ports:
+            - "3000"
+        environment:
+            - PORT=3000
+            - REDIS_IP=data-redis
+            - REDIS_PORT=6379
+        depends_on:
+            - data-redis
+        networks:
+            - back-tier
+            - front-tier
+
+    data-redis:
+        image: 172.16.110.141:5000/data-redis:0.0.0
+        container_name: data-redis
+        volumes:
+            - data-redis:/data
+        ports: 
+            - "6379"
+        environment: 
+            - PORT="6379"
+        networks:
+            - back-tier
+
+volumes:
+    data-redis:
+        driver: local
+
+networks:
+    back-tier:
+        driver: overlay
+    front-tier:
+        driver: overlay

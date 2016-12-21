@@ -1,4 +1,4 @@
-FROM redis:3.2.5
+FROM 172.16.110.141:5000/redis:3.2.5
 MAINTAINER DaoNV "daonv@asiantech.vn"
 
 EXPOSE 6379

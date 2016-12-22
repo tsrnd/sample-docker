@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e -o pipefail
+set -exo pipefail
 
 REGISTRY='172.16.110.141:5000'
 MACHINE_FLAGS="-d virtualbox
@@ -25,10 +25,18 @@ PROXY=proxy
 PROXY_DIR=./proxy
 PROXY_IMAGE="$REGISTRY/$PROXY:0.0.0"
 
+create_machine() {
+    NAME="$1"
+    FLAGS="$2"
+    docker-machine ls | grep $NAME && {
+        docker-machine ls | grep $NAME | grep Running || docker-machine start $NAME
+    } || {
+        docker-machine create $MACHINE_FLAGS $FLAGS $NAME
+    }
+}
+
 # build images
-docker-machine create $MACHINE_FLAGS default \
-    || docker-machine start default \
-    || true
+create_machine default
 eval $(docker-machine env default)
 docker build $APP_DIR -t $APP_IMAGE
 docker push $APP_IMAGE
@@ -38,50 +46,36 @@ docker build $PROXY_DIR -t $PROXY_IMAGE
 docker push $PROXY_IMAGE
 
 # create nodes
+MASTER="$NODE-1"
 for i in 1 2; do
-    docker-machine create $MACHINE_FLAGS $NODE-$i \
-        || docker-machine start $NODE-$i \
-        || true
+    node="$NODE-$i"
+    [[ $node == $MASTER ]] \
+        && create_machine "$node" --swarm-master \
+        || create_machine "$node" --swarm
 done
 
-# init swarm with node-1
-TOKEN=''
+# create networks
+docker network create 
 
-# add other nodes to swarm
-for i in 1 2; do
-    eval $(docker-machine env $NODE-$i)
-    if [[ $i == '1' ]]; then
-        docker swarm init \
-            --advertise-addr $(docker-machine ip $NODE-1) \
-            --listen-addr $(docker-machine ip $NODE-1):$NET_PORT
-        TOKEN=$(docker swarm join-token -q worker)
-    else
+# create swarm
+docker 
+
+
+TOKEN=''
+for i in 1 2; do    
+    node="$NODE-$i"
+    eval $(docker-machine env $node)    
+    [[ $node == $MASTER ]] && {        
+        docker node ls || {
+            docker swarm init \
+                --advertise-addr $(docker-machine ip $MASTER) \
+                --listen-addr $(docker-machine ip $MASTER):$NET_PORT
+        }         
+        TOKEN=$(docker swarm join-token -q worker)       
+    } || {
         docker swarm join \
             --token $TOKEN \
-            $(docker-machine ip $NODE-1):$NET_PORT
-    fi
+            $(docker-machine ip $MASTER):$NET_PORT \
+            || true
+    }
 done
-
-# create network layers
-eval $(docker-machine env $NODE-1)
-docker network create --driver overlay $NET_PUBLIC
-docker network create --driver overlay $NET_LOCAL
-
-# create service layers
-docker service create --name $DB \
-    --network $NET_LOCAL \
-    $DB_IMAGE
-docker service create --name $APP \
-    -e DB=$DB \
-    --network $NET_LOCAL \
-    --network $NET_PUBLIC \
-    $APP_IMAGE
-
-docker service create --name $PROXY \
-    -p 80:80 \
-    -p 443:443 \
-    -p 8080:8080 \
-    --network $NET_PUBLIC \
-    -e MODE=swarm \
-    $PROXY_IMAGE
-docker service ps $PROXY

@@ -5,26 +5,31 @@ services:
         image: 172.16.110.141:5000/proxy:0.0.0
         container_name: proxy
         ports: 
-            - "80:80"
+            - 80:80
+            - 443:443
+            - 8080:8080    
+        environment: 
+            - MODE=swarm            
         depends_on: 
             - app-chat
         networks: 
-            - front-tier
+            - net-public
 
     app-chat:
         image: 172.16.110.141:5000/app-chat:0.0.0
         container_name: app-chat
         ports:
-            - "3000"
+            - 3000
         environment:
+            - "constraint:node==node-chat-1"
             - PORT=3000
             - REDIS_IP=data-redis
             - REDIS_PORT=6379
         depends_on:
             - data-redis
         networks:
-            - back-tier
-            - front-tier
+            - net-local
+            - net-public
 
     data-redis:
         image: 172.16.110.141:5000/data-redis:0.0.0
@@ -32,18 +37,16 @@ services:
         volumes:
             - data-redis:/data
         ports: 
-            - "6379"
+            - 6379
         environment: 
-            - PORT="6379"
+            - PORT=6379
         networks:
-            - back-tier
+            - net-local
 
 volumes:
     data-redis:
         driver: local
 
 networks:
-    back-tier:
-        driver: overlay
-    front-tier:
-        driver: overlay
+    net-local:     
+    net-public:

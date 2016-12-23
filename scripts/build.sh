@@ -1,87 +1,155 @@
 #!/bin/bash
 
-set -e -o pipefail
+set -o pipefail
 
-REGISTRY='172.16.110.141:5000'
-MACHINE_FLAGS="-d virtualbox
-    --virtualbox-boot2docker-url file://$HOME/.docker/machine/iso/default.iso
+SECTION() {
+    echo "=== $1"
+}
+
+log() {
+    echo "> $1"
+}
+
+SECTION 'Define'
+
+iso_url="file://$HOME/.docker/machine/boot2docker.iso"
+registry='172.16.110.141:5000'
+repo='asiantech/ts-server'
+machine_flags="-d virtualbox
+    --virtualbox-boot2docker-url $iso_url
     --virtualbox-memory 1024
     --virtualbox-cpu-count 1
     --virtualbox-no-share
     --virtualbox-no-vtx-check
-    --engine-insecure-registry $REGISTRY"
+    --engine-insecure-registry $registry"
 
-NODE='node-chat'
-APP='app-chat'
-APP_DIR=./app/chat
-APP_IMAGE="$REGISTRY/$APP:0.0.0"
-DB='data-redis'
-DB_DIR=./data/redis
-DB_IMAGE="$REGISTRY/$DB:0.0.0"
-NET_LOCAL=net-local
-NET_PUBLIC=net-public
-NET_PORT=2377
-PROXY=proxy
-PROXY_DIR=./proxy
-PROXY_IMAGE="$REGISTRY/$PROXY:0.0.0"
+swarm_port='2377'
+swarm_nodes=('node-01' 'node-02' 'node-03')
+swarm_master='node-01'
+net_local='swarm-local'
+net_public='swarm-public'
 
-# build images
-docker-machine create $MACHINE_FLAGS default \
-    || docker-machine start default \
-    || true
+app_name='chat'
+app_dir='./app/chat'
+app_image="$registry/$repo/$app_name:0.0.0"
+app_scale='2'
+
+db_name='redis'
+db_dir='./data/redis'
+db_image="$registry/$repo/$db_name:0.0.0"
+
+proxy_name='proxy'
+proxy_image="$registry/dockercloud/haproxy:1.6.2"
+
+create_node() {
+    local name="$1"
+    log "create node '$name'"
+    {
+        docker-machine ls | grep "$name" && { 
+            docker-machine ls \
+                | grep "$name" | grep "Running" \
+                || docker-machine start $name
+        } || {
+            docker-machine create $machine_flags $name
+        }
+    } > /dev/null
+}
+
+SECTION 'Images'
+
+create_node default
 eval $(docker-machine env default)
-docker build $APP_DIR -t $APP_IMAGE
-docker push $APP_IMAGE
-docker build $DB_DIR -t $DB_IMAGE
-docker push $DB_IMAGE
-docker build $PROXY_DIR -t $PROXY_IMAGE
-docker push $PROXY_IMAGE
+log "build $app_image"
+docker build $app_dir -t $app_image > /dev/null
+docker push $app_image > /dev/null
+log "build $db_image"
+docker build $db_dir -t $db_image > /dev/null
+docker push $db_image > /dev/null
 
-# create nodes
-for i in 1 2; do
-    docker-machine create $MACHINE_FLAGS $NODE-$i \
-        || docker-machine start $NODE-$i \
-        || true
+SECTION 'Swarm Nodes'
+for node in "${swarm_nodes[@]}"; do
+    create_node "$node"
 done
 
-# init swarm with node-1
-TOKEN=''
-
-# add other nodes to swarm
-for i in 1 2; do
-    eval $(docker-machine env $NODE-$i)
-    if [[ $i == '1' ]]; then
-        docker swarm init \
-            --advertise-addr $(docker-machine ip $NODE-1) \
-            --listen-addr $(docker-machine ip $NODE-1):$NET_PORT
-        TOKEN=$(docker swarm join-token -q worker)
-    else
+SECTION 'Swarm'
+token=''
+swarm_ip="$(docker-machine ip $swarm_master)"
+for node in "${swarm_nodes[@]}"; do    
+    eval $(docker-machine env $node)    
+    [[ $node == $swarm_master ]] && {  
+        log "init swarm at node '$node'"
+        docker node ls || {
+            docker swarm init \
+                --advertise-addr $swarm_ip \
+                --listen-addr $swarm_ip:$swarm_port > /dev/null
+        }
+        log 'get swarm join token'
+        token=$(docker swarm join-token -q worker)       
+    } || {
+        log "add node '$node' to swarm"
         docker swarm join \
-            --token $TOKEN \
-            $(docker-machine ip $NODE-1):$NET_PORT
-    fi
+            --token $token \
+            $swarm_ip:$swarm_port > /dev/null
+    }
 done
 
-# create network layers
-eval $(docker-machine env $NODE-1)
-docker network create --driver overlay $NET_PUBLIC
-docker network create --driver overlay $NET_LOCAL
+eval $(docker-machine env $swarm_master)
 
-# create service layers
-docker service create --name $DB \
-    --network $NET_LOCAL \
-    $DB_IMAGE
-docker service create --name $APP \
-    -e DB=$DB \
-    --network $NET_LOCAL \
-    --network $NET_PUBLIC \
-    $APP_IMAGE
+SECTION 'Networks'
 
-docker service create --name $PROXY \
-    -p 80:80 \
-    -p 443:443 \
-    -p 8080:8080 \
-    --network $NET_PUBLIC \
-    -e MODE=swarm \
-    $PROXY_IMAGE
-docker service ps $PROXY
+log "create '$net_local'"
+docker network ls | grep "$net_local" \
+    || docker network create \
+        --driver overlay \
+        $net_local
+
+log "create '$net_public'"
+docker network ls | grep "$net_public" \
+    || docker network create \
+        --driver overlay \
+        $net_public
+
+SECTION 'Services'
+
+log "create '$proxy_name'"
+docker service ls | grep "$proxy_name" \
+    || docker service create \
+        --name $proxy_name \
+        --mode global \
+        --network $net_local \
+        --network $net_public \
+        --mount target=/var/run/docker.sock,source=/var/run/docker.sock,type=bind \
+        --constraint 'node.role == manager' \        
+        -p '80:80' \
+        --restart-condition any \
+        $proxy_image
+
+log "create '$db_name'"
+docker service ls | grep "$db_name" \
+    || docker service create \
+        --name $db_name \
+        --network $net_local \
+        $db_image
+
+log "create '$app_name'"
+docker service ls | grep "$app_name" \
+    || docker service create \
+        --name $app_name \
+        --network $net_local \
+        --constraint 'node.role != manager' \
+        -e DB=$db_name \
+        -e SERVICE_PORTS='80' \
+        $app_image
+
+SECTION 'Update'
+
+log "updated service $(docker service update redis --force)"
+log "updated service $(docker service update chat --force)"
+log "updated service $(docker service update proxy --force)"
+
+SECTION 'Info'
+
+swarm_ip="$(docker-machine ip $swarm_master)"
+log "swarm ip: $swarm_ip"
+
+open "http://$swarm_ip" -a 'Google Chrome'

@@ -10,7 +10,6 @@
         "**/.gitignore": true,
         "**/.node-version": true,
         "**/.gitattributes": true,
-        "**/*.md": true,
         "**/*.lock": true,
         "**/*.map": true,        
         "**/vendor": true,

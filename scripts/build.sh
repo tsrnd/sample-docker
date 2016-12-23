@@ -10,6 +10,10 @@ log() {
     echo "> $1"
 }
 
+SECTION 'Clean'
+
+docker-machine ls -q | grep -v default | xargs docker-machine rm -y
+
 SECTION 'Define'
 
 iso_url="file://$HOME/.docker/machine/boot2docker.iso"
@@ -45,7 +49,7 @@ create_node() {
     local name="$1"
     log "create node '$name'"
     {
-        docker-machine ls | grep "$name" && { 
+        docker-machine ls | grep "$name" && {
             docker-machine ls \
                 | grep "$name" | grep "Running" \
                 || docker-machine start $name
@@ -67,6 +71,7 @@ docker build $db_dir -t $db_image > /dev/null
 docker push $db_image > /dev/null
 
 SECTION 'Swarm Nodes'
+
 for node in "${swarm_nodes[@]}"; do
     create_node "$node"
 done
@@ -74,9 +79,9 @@ done
 SECTION 'Swarm'
 token=''
 swarm_ip="$(docker-machine ip $swarm_master)"
-for node in "${swarm_nodes[@]}"; do    
-    eval $(docker-machine env $node)    
-    [[ $node == $swarm_master ]] && {  
+for node in "${swarm_nodes[@]}"; do
+    eval $(docker-machine env $node)
+    [[ $node == $swarm_master ]] && {
         log "init swarm at node '$node'"
         docker node ls || {
             docker swarm init \
@@ -84,7 +89,7 @@ for node in "${swarm_nodes[@]}"; do
                 --listen-addr $swarm_ip:$swarm_port > /dev/null
         }
         log 'get swarm join token'
-        token=$(docker swarm join-token -q worker)       
+        token=$(docker swarm join-token -q worker)
     } || {
         log "add node '$node' to swarm"
         docker swarm join \
@@ -119,15 +124,15 @@ docker service ls | grep "$proxy_name" \
         --network $net_local \
         --network $net_public \
         --mount target=/var/run/docker.sock,source=/var/run/docker.sock,type=bind \
-        --constraint 'node.role == manager' \        
-        -p '80:80' \
-        --restart-condition any \
+        --constraint 'node.role == manager' \
+        -p 80:80 \
         $proxy_image
 
 log "create '$db_name'"
 docker service ls | grep "$db_name" \
     || docker service create \
         --name $db_name \
+        --replicas 1 \
         --network $net_local \
         $db_image
 
@@ -135,19 +140,22 @@ log "create '$app_name'"
 docker service ls | grep "$app_name" \
     || docker service create \
         --name $app_name \
+        --replicas 1 \
         --network $net_local \
         --constraint 'node.role != manager' \
         -e DB=$db_name \
-        -e SERVICE_PORTS='80' \
+        -e SERVICE_PORTS=80 \
         $app_image
 
 SECTION 'Update'
 
-log "updated service $(docker service update redis --force)"
-log "updated service $(docker service update chat --force)"
-log "updated service $(docker service update proxy --force)"
+docker service scale $app_name=2
+docker service update $app_name
 
 SECTION 'Info'
+
+docker node ls
+docker service ls
 
 swarm_ip="$(docker-machine ip $swarm_master)"
 log "swarm ip: $swarm_ip"

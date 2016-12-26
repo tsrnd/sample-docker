@@ -2,43 +2,41 @@ version: '2'
 
 services:
     proxy:
-        image: 172.16.110.141:5000/proxy:0.0.0
-        container_name: proxy
-        ports: 
+        image: 172.16.110.141:5000/dockercloud/haproxy:1.6.2
+        ports:
             - 80:80
             - 443:443
-            - 8080:8080    
-        environment: 
-            - MODE=swarm            
-        depends_on: 
+            - 8080:8080
+        environment:
+            - MODE=swarm
+        depends_on:
             - app-chat
-        networks: 
+        networks:
             - net-public
 
-    app-chat:
-        image: 172.16.110.141:5000/app-chat:0.0.0
-        container_name: app-chat
+    chat:
+        image: 172.16.110.141:5000/chat:0.0.0
         ports:
             - 3000
         environment:
-            - "constraint:node==node-chat-1"
+            - "constraint: node.role != manager"
             - PORT=3000
-            - REDIS_IP=data-redis
+            - REDIS_IP=redis
             - REDIS_PORT=6379
         depends_on:
-            - data-redis
+            - redis
         networks:
             - net-local
             - net-public
 
-    data-redis:
-        image: 172.16.110.141:5000/data-redis:0.0.0
+    redis:
+        image: 172.16.110.141:5000/redis:0.0.0
         container_name: data-redis
         volumes:
             - data-redis:/data
-        ports: 
+        ports:
             - 6379
-        environment: 
+        environment:
             - PORT=6379
         networks:
             - net-local
@@ -48,5 +46,5 @@ volumes:
         driver: local
 
 networks:
-    net-local:     
+    net-local:
     net-public:

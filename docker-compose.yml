@@ -2,42 +2,41 @@ version: '2'
 
 services:
     proxy:
-        image: 172.16.110.141:5000/dockercloud/haproxy:1.6.2
+        image: dockercloud/haproxy:1.6.2
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock:bind
         ports:
-            - 80:80
-            - 443:443
-            - 8080:8080
+            - 80:80     # http
+            - 1936:1936 # stats
         environment:
-            - MODE=swarm
-        depends_on:
-            - app-chat
+            - "constraint:node.role==manager"
+            - mode=global
+            - STATS_AUTH="admin:admin"
         networks:
+            - net-local
             - net-public
-
     chat:
-        image: 172.16.110.141:5000/chat:0.0.0
+        image: 192.168.99.100:5000/chat:latest
         ports:
-            - 3000
+            - "3000"
         environment:
-            - "constraint: node.role != manager"
-            - PORT=3000
+            - "constraint:node.role!=manager"
             - REDIS_IP=redis
             - REDIS_PORT=6379
         depends_on:
             - redis
         networks:
             - net-local
-            - net-public
 
     redis:
-        image: 172.16.110.141:5000/redis:0.0.0
+        image: redis:3.2.6
         container_name: data-redis
         volumes:
             - data-redis:/data
         ports:
-            - 6379
+            - "6379"
         environment:
-            - PORT=6379
+            - "constraint:node.role!=manager"
         networks:
             - net-local
 
@@ -47,4 +46,12 @@ volumes:
 
 networks:
     net-local:
+        driver: overlay
+        ipam:
+            config:
+                - subnet: 10.0.9.0/24
     net-public:
+        driver: overlay
+        ipam:
+            config:
+                - subnet: 10.0.9.0/24

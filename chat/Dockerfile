@@ -25,5 +25,6 @@ RUN yes | cp -rf . "$WORK_DIR/"
 
 WORKDIR "$WORK_DIR"
 COPY . .
-EXPOSE 80
-CMD yarn start
+
+EXPOSE 3000
+CMD ["yarn", "start"]

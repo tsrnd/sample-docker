@@ -48,27 +48,21 @@ eval "$(docker-machine env $swarm_master)"
 SECTION 'Networks'
 
 log "create '$net_local'"
-if docker network ls | grep "$net_local"; then
-    docker network rm "$net_local" -f
-fi
 docker network create \
     --driver overlay \
     --subnet=10.0.9.0/24 \
-    $net_local
+    $net_local || true
 
 log "create '$net_public'"
-if docker network ls | grep "$net_public"; then
-    docker network rm "$net_public" -f
-fi
 docker network create \
     --driver overlay \
     --subnet=10.0.9.0/24 \
-    $net_public
+    $net_public || true
 
 SECTION 'Services'
 
 log "create '$proxy_name'"
-# docker service ls | grep "$proxy_name" && docker service rm $proxy_name
+docker service ls | grep "$proxy_name" && docker service rm $proxy_name
 docker service create \
     --name $proxy_name \
     --mode global \
@@ -82,7 +76,7 @@ docker service create \
     $proxy_image
 
 log "create '$db_name'"
-# docker service ls | grep "$db_name" && docker service rm $db_name
+docker service ls | grep "$db_name" && docker service rm $db_name
 docker service create \
     --name $db_name \
     --replicas "$db_scale" \
@@ -90,26 +84,27 @@ docker service create \
     --constraint 'node.role!=manager' \
     $db_image
 
-log "create '$app_name'"
+# log "create '$app_name'"
 # docker service ls | grep "$app_name" && docker service rm $app_name
-docker service create \
-    --name $app_name \
-    --replicas $app_scale \
-    --network $net_local \
-    --constraint 'node.role!=manager' \
-    -e DB="$db_name" \
-    -e PORT=3000 \
-    -e SERVICE_PORTS=3000 \
-    -e VIRTUAL_HOST="$app_host" \
-    $app_image
+# docker service create \
+#     --name $app_name \
+#     --replicas $app_scale \
+#     --network $net_local \
+#     --constraint 'node.role!=manager' \
+#     -e DB="$db_name" \
+#     -e PORT=3000:3000 \
+#     -e SERVICE_PORTS=3000 \
+#     -e VIRTUAL_HOST="$app_host" \
+#     $app_image
 
 log "create '$web_name'"
-# docker service ls | grep "$web_name" && docker service rm $web_name
+docker service ls | grep "$web_name" && docker service rm $web_name
 docker service create \
     --name $web_name \
     --replicas $web_scale \
     --network $net_local \
     --constraint 'node.role!=manager' \
-    -e SERVICE_PORTS=80 \
+    -e PORT=9000:9000 \
+    -e SERVICE_PORTS=9000 \
     -e DB=$db_name \
     $web_image

@@ -46,20 +46,20 @@ SECTION 'Define'
 
 app_name='chat'
 app_dir='./chat'
-app_image="$registry/$app_name"
+app_image="$registry/$app_name:latest"
 
 web_name='web'
 web_dir='./web'
-web_image="$registry/$web_name"
+web_image="$registry/$web_name:latest"
 
 SECTION 'Images'
 
 log "build $app_image"
-# docker images | grep "$registry/$app_name" && docker rmi $app_image
+docker images | grep "$registry/$app_name" && docker rmi $app_image
 docker build $app_dir -t $app_image
 docker push $app_image
 
 log "build $web_image"
-# docker images | grep "$registry/$web_name" && docker rmi $web_image
+docker images | grep "$registry/$web_name" && docker rmi $web_image
 docker build $web_dir -t $web_image
 docker push $web_image

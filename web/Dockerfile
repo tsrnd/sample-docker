@@ -1,7 +1,7 @@
 FROM php:7.1.0
 MAINTAINER DaoNV "daonv@asiantech.vn"
 
-ENV WORK_DIR='/var/www/html'
+ENV WORK_DIR='/var/www'
 ENV CACHE_DIR='/cache/app/web'
 
 RUN mkdir -p "$WORK_DIR"
@@ -77,32 +77,6 @@ RUN composer install && \
 
 COPY php-fpm.conf /etc/php7/php-fpm.conf
 RUN ln -s /usr/bin/php7 /usr/bin/php
-CMD yarn start
 
-# nginx
-ENV NGINX_VERSION 1.11.8-1~jessie
-RUN apt-key adv --keyserver hkp://pgp.mit.edu:80 --recv-keys 573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62
-RUN echo "deb http://nginx.org/packages/mainline/debian/ jessie nginx" >> /etc/apt/sources.list
-RUN apt-get update && \
-    apt-get install \
-        --no-install-recommends \
-        --no-install-suggests \
-        -y \
-        ca-certificates \
-        nginx=${NGINX_VERSION} \
-        nginx-module-xslt \
-        nginx-module-geoip \
-        nginx-module-image-filter \
-        nginx-module-perl \
-        nginx-module-njs \
-        gettext-base && \
-    rm -rf /var/lib/apt/lists/*
-
-# forward request and error logs to docker log collector
-RUN ln -sf /dev/stdout /var/log/nginx/access.log && \
-    ln -sf /dev/stderr /var/log/nginx/error.log
-
-COPY nginx.conf /etc/nginx/nginx.conf
-
-EXPOSE 80 9000
-CMD ["nginx", "-g", "daemon off;"]
+EXPOSE 9000
+CMD ["yarn", "start"]

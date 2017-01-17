@@ -17,3 +17,16 @@ elixir((mix) => {
     mix.sass('app.scss')
        .webpack('app.js');
 });
+
+var gulp = require('gulp'),
+    exec = require('child_process').exec;
+
+gulp.task('phpunit', function () {
+    exec('composer exec phpunit ./tests/unit', function (error, stdout) {
+        console.log(stdout);
+    });
+});
+
+// gulp.task('default', function () {
+//     gulp.watch('**/*.php', { debounceDelay: 2000 }, ['phpunit']);
+// });

@@ -10,101 +10,121 @@ log() {
     echo "> $1"
 }
 
-clear
-
 SECTION 'Prepare'
 
-registry='192.168.99.100:5000'
+REGISTRY_MACHINE='default'
+eval "$(docker-machine env "$REGISTRY_MACHINE")"
+REGISTRY="$(docker-machine ip "$REGISTRY_MACHINE"):5000"
 
-eval "$(docker-machine env default)"
+sleep 3
+
 if ! docker ps | grep 'registry:2'; then
     docker run -d -p 5000:5000 --restart=always --name registry registry:2
 fi
 
 SECTION 'Define'
 
-swarm_master='node-01'
-net_local='swarm-local'
-net_public='swarm-public'
+SWARM_MASTER='node-01'
+NET_LOCAL='swarm-local'
+NET_PUBLIC='swarm-public'
 
-app_name='chat'
-app_image="$registry/$app_name"
-app_scale='1'
-app_host='/api'
+APP_NAME='chat'
+APP_IMAGE="$REGISTRY/$APP_NAME:latest"
+APP_SCALE='1'
+APP_HOST='/api'
+APP_PORT='3000'
 
-web_name='web'
-web_image="$registry/$web_name"
-web_scale='1'
+WEB_NAME='web'
+WEB_IMAGE="$REGISTRY/$WEB_NAME:latest"
+WEB_SCALE='1'
+WEB_PORT='9000'
 
-db_name='redis'
-db_image="redis:3.2.6"
-db_scale='1'
+DB_NAME='redis'
+DB_IMAGE="redis:3.2.6"
+DB_SCALE='1'
 
-proxy_name='proxy'
-proxy_image='dockercloud/haproxy:1.6.2'
+PROXY_NAME='proxy'
+PROXY_IMAGE='dockercloud/haproxy:1.6.2'
 
-eval "$(docker-machine env $swarm_master)"
+eval "$(docker-machine env $SWARM_MASTER)"
 
 SECTION 'Networks'
 
-log "create '$net_local'"
+log "create '$NET_LOCAL'"
 docker network create \
     --driver overlay \
     --subnet=10.0.9.0/24 \
-    $net_local || true
+    "$NET_LOCAL" || true
 
-log "create '$net_public'"
+log "create '$NET_PUBLIC'"
 docker network create \
     --driver overlay \
     --subnet=10.0.9.0/24 \
-    $net_public || true
+    "$NET_PUBLIC" || true
+
+sleep 3
 
 SECTION 'Services'
 
-log "create '$proxy_name'"
-docker service ls | grep "$proxy_name" && docker service rm $proxy_name
+for SERVICE_ID in $(docker service ls -q); do
+    docker service rm "$SERVICE_ID";
+done
+
+log "create '$PROXY_NAME'"
 docker service create \
-    --name $proxy_name \
+    --name $PROXY_NAME \
     --mode global \
-    --network $net_local \
-    --network $net_public \
+    --network $NET_PUBLIC \
     --mount target=/var/run/docker.sock,source=/var/run/docker.sock,type=bind \
-    --constraint 'node.role==manager' \
     -p 80:80 \
     -p 1936:1936 \
     -e STATS_AUTH=admin:admin \
-    $proxy_image
+    "$PROXY_IMAGE"
 
-log "create '$db_name'"
-docker service ls | grep "$db_name" && docker service rm $db_name
+sleep 3
+
+log "create '$DB_NAME'"
 docker service create \
-    --name $db_name \
-    --replicas "$db_scale" \
-    --network $net_local \
+    --name $DB_NAME \
+    --replicas $DB_SCALE \
+    --network $NET_LOCAL \
     --constraint 'node.role!=manager' \
-    $db_image
+    "$DB_IMAGE"
 
-# log "create '$app_name'"
-# docker service ls | grep "$app_name" && docker service rm $app_name
-# docker service create \
-#     --name $app_name \
-#     --replicas $app_scale \
-#     --network $net_local \
-#     --constraint 'node.role!=manager' \
-#     -e DB="$db_name" \
-#     -e PORT=3000:3000 \
-#     -e SERVICE_PORTS=3000 \
-#     -e VIRTUAL_HOST="$app_host" \
-#     $app_image
+sleep 3
 
-log "create '$web_name'"
-docker service ls | grep "$web_name" && docker service rm $web_name
+log "create '$APP_NAME'"
 docker service create \
-    --name $web_name \
-    --replicas $web_scale \
-    --network $net_local \
+    --name $APP_NAME \
+    --replicas $APP_SCALE \
+    --network $NET_LOCAL \
+    --network $NET_PUBLIC \
     --constraint 'node.role!=manager' \
-    -e PORT=9000:9000 \
-    -e SERVICE_PORTS=9000 \
-    -e DB=$db_name \
-    $web_image
+    -e DB="$DB_NAME" \
+    -e SERVICE_PORTS=$APP_PORT \
+    -e VIRTUAL_HOST=$APP_HOST \
+    "$APP_IMAGE"
+
+sleep 3
+
+log "create '$WEB_NAME'"
+docker service create \
+    --name $WEB_NAME \
+    --replicas $WEB_SCALE \
+    --network $NET_LOCAL \
+    --network $NET_PUBLIC \
+    --constraint 'node.role!=manager' \
+    -e SERVICE_PORTS=$WEB_PORT \
+    -e DB=$DB_NAME \
+    "$WEB_IMAGE"
+
+sleep 5
+
+docker node ls
+for SERVICE_ID in $(docker service ls -q); do
+    docker service ps "$SERVICE_ID";
+done
+
+SWARM_IP="$(docker-machine ip "$SWARM_MASTER")"
+log "swarm ip: $SWARM_IP"
+open "http://$SWARM_IP" -a 'Google Chrome'

@@ -1,8 +1,8 @@
 #!/bin/bash
 
-set -exo pipefail
+set -eo pipefail
 
-SECTION() {
+section() {
     echo "=== $1"
 }
 
@@ -12,17 +12,15 @@ log() {
 
 clear
 
-SECTION 'Build Images'
-
-registry='192.168.99.100:5000'
+section 'Build Images'
 
 create_machine() {
-    local name="$1"
-    log "create node '$name'"
+    local MACHINE_NAME="$1"
+    log "create node '$MACHINE_NAME'"
 
-    if docker-machine ls | grep "$name"; then
-        if ! docker-machine ls | grep "$name" | grep "Running"; then
-            docker-machine start "$name"
+    if docker-machine ls | grep "$MACHINE_NAME"; then
+        if ! docker-machine ls | grep "$MACHINE_NAME" | grep "Running"; then
+            docker-machine start "$MACHINE_NAME"
         fi
     else
         docker-machine create -d virtualbox \
@@ -31,35 +29,39 @@ create_machine() {
             --virtualbox-cpu-count 1 \
             --virtualbox-no-share \
             --virtualbox-no-vtx-check \
-            --engine-insecure-registry $registry \
-            "$name"
+            "$MACHINE_NAME"
     fi
 }
 
-create_machine default
-eval "$(docker-machine env default)"
-if ! docker ps | grep 'registry:2'; then
+section 'Prepare'
+
+REGISTRY_MACHINE='default'
+create_machine "$REGISTRY_MACHINE"
+eval "$(docker-machine env $REGISTRY_MACHINE)"
+REGISTRY="$(docker-machine ip $REGISTRY_MACHINE):5000"
+
+if ! docker ps -a | grep 'registry:2'; then
     docker run -d -p 5000:5000 --restart=always --name registry registry:2
 fi
 
-SECTION 'Define'
+section 'Define'
 
-app_name='chat'
-app_dir='./chat'
-app_image="$registry/$app_name:latest"
+APP_NAME='chat'
+APP_DIR='./chat'
+APP_IMAGE="$REGISTRY/$APP_NAME:latest"
 
-web_name='web'
-web_dir='./web'
-web_image="$registry/$web_name:latest"
+WEB_NAME='web'
+WEB_DIR='./web'
+WEB_IMAGE="$REGISTRY/$WEB_NAME:latest"
 
-SECTION 'Images'
+section 'Images'
 
-log "build $app_image"
-docker images | grep "$registry/$app_name" && docker rmi $app_image
-docker build $app_dir -t $app_image
-docker push $app_image
+log "build $APP_IMAGE"
+docker images | grep "$REGISTRY/$APP_NAME" && docker rmi "$APP_IMAGE"
+docker build "$APP_DIR" -t "$APP_IMAGE"
+docker push "$APP_IMAGE"
 
-log "build $web_image"
-docker images | grep "$registry/$web_name" && docker rmi $web_image
-docker build $web_dir -t $web_image
-docker push $web_image
+log "build $WEB_IMAGE"
+docker images | grep "$REGISTRY/$WEB_NAME" && docker rmi "$WEB_IMAGE"
+docker build "$WEB_DIR" -t "$WEB_IMAGE"
+docker push "$WEB_IMAGE"

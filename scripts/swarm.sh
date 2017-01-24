@@ -2,7 +2,7 @@
 
 set -eo pipefail
 
-SECTION() {
+section() {
     echo "=== $1"
 }
 
@@ -12,16 +12,25 @@ log() {
 
 clear
 
-SECTION 'Prepare'
+section 'Prepare'
 
-registry='192.168.99.100:5000'
+REGISTRY_MACHINE='default'
+docker-machine start "$REGISTRY_MACHINE" || true
+eval "$(docker-machine env $REGISTRY_MACHINE)"
+REGISTRY="$(docker-machine ip $REGISTRY_MACHINE):5000"
+
+sleep 3
+
+if ! docker ps | grep 'registry:2'; then
+    docker run -d -p 5000:5000 --restart=always --name registry registry:2
+fi
 
 create_machine() {
-    local name="$1"
-    log "create node '$name'"
-    if docker-machine ls | grep "$name"; then
-        if ! docker-machine ls | grep "$name" | grep "Running"; then
-            docker-machine start "$name"
+    local MACHINE_NAME="$1"
+    log "create node '$MACHINE_NAME'"
+    if docker-machine ls | grep "$MACHINE_NAME"; then
+        if ! docker-machine ls | grep "$MACHINE_NAME" | grep "Running"; then
+            docker-machine start "$MACHINE_NAME"
         fi
     else
         docker-machine create -d virtualbox \
@@ -30,52 +39,43 @@ create_machine() {
             --virtualbox-cpu-count 1 \
             --virtualbox-no-share \
             --virtualbox-no-vtx-check \
-            --engine-insecure-registry $registry \
-            "$name"
+            --engine-insecure-registry "$REGISTRY" \
+            "$MACHINE_NAME"
     fi
 }
 
-SECTION 'Define'
+section 'Define'
 
-swarm_nodes=('node-01' 'node-02' 'node-03')
-swarm_master='node-01'
+SWARM_NODES=('node-01' 'node-02' 'node-03')
+SWARM_MASTER='node-01'
 
-SECTION 'Swarm Nodes'
+section 'Swarm Nodes'
 
-# docker-machine ls -q | grep -v default | xargs docker-machine rm -y
-for node in "${swarm_nodes[@]}"; do
-    create_machine "$node"
+# docker-machine ls -q | grep -v "$REGISTRY_MACHINE" | xargs docker-machine rm -y
+for NODE in "${SWARM_NODES[@]}"; do
+    create_machine "$NODE"
 done
 
-SECTION 'Swarm'
-token=''
-swarm_ip="$(docker-machine ip $swarm_master)"
-for node in "${swarm_nodes[@]}"; do
-    eval "$(docker-machine env "$node")"
+section 'Swarm'
+TOKEN=''
+SWARM_IP="$(docker-machine ip $SWARM_MASTER)"
+for NODE in "${SWARM_NODES[@]}"; do
+    if ! docker-machine env "$NODE" ; then
+        docker-machine regenerate-certs "$NODE" -f
+    fi
+    eval "$(docker-machine env "$NODE")"
     log 'remove old containers'
     docker ps -aq | xargs docker rm -f
-    if [[ $node == "$swarm_master" ]]; then
-        log "init swarm at node '$node'"
-        docker node ls || {
-            docker swarm init \
-                --advertise-addr "$swarm_ip" \
-                --listen-addr "$swarm_ip:2377"
-        }
-        log 'get swarm join token'
-        token=$(docker swarm join-token -q worker)
+    if [[ $NODE == "$SWARM_MASTER" ]]; then
+        docker swarm init --advertise-addr "$SWARM_IP" --listen-addr "$SWARM_IP:2377" || true
+        log 'get swarm join-token'
+        TOKEN="$(docker swarm join-token -q worker)"
     else
-        log "add node '$node' to swarm"
-        docker swarm leave || true
-        docker swarm join \
-            --token "$token" \
-            "$swarm_ip:2377"
+        docker swarm join --token "$TOKEN" "$SWARM_IP:2377" || true
     fi
 done
 
-SECTION 'Info'
+section 'Info'
 
-eval "$(docker-machine env $swarm_master)"
+eval "$(docker-machine env "$SWARM_MASTER")"
 docker node ls
-swarm_ip="$(docker-machine ip $swarm_master)"
-log "swarm ip: $swarm_ip"
-open "http://$swarm_ip" -a 'Google Chrome'

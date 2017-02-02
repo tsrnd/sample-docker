@@ -1,0 +1,55 @@
+version: '2'
+services:
+  app:
+    build: ./app
+    volumes:
+      - ./:/var/www/laravel
+  workspace:
+    build: ./laradock/workspace
+    volumes_from:
+      - app
+    command: /bin/bash
+    tty: true
+  php-fpm:
+    build:
+      context: ./laradock/php-fpm
+      dockerfile: Dockerfile-70
+    volumes_from:
+      - app
+    depends_on:
+      - workspace
+      - mysql
+      - redis
+    environment:
+      #XDEBUG_CONFIG: "remote_host=<my external IP>"
+      PHP_IDE_CONFIG: "serverName=Docker"
+  nginx:
+    build: ./laradock/nginx
+    volumes_from:
+      - app
+    volumes:
+      - ./logs/nginx/:/var/log/nginx
+    ports:
+      - "9080:80"
+    links:
+      - php-fpm
+  data:
+    build: ./data
+    volumes:
+      - /var/lib/mysql
+      - /var/lib/redis
+  mysql:
+    build: ./laradock/mysql
+    volumes_from:
+      - data
+    ports:
+      - "13306:3306"
+    environment:
+      MYSQL_DATABASE: app
+      MYSQL_USER: root
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: root@secret123
+  redis:
+    build: ./redis
+    volumes_from:
+      - data

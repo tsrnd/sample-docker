@@ -2,7 +2,7 @@
 
 set -eo pipefail
 
-SECTION() {
+section() {
     echo "=== $1"
 }
 
@@ -10,11 +10,11 @@ log() {
     echo "> $1"
 }
 
-SECTION 'Prepare'
+section 'Prepare'
 
-REGISTRY_MACHINE='default'
-eval "$(docker-machine env "$REGISTRY_MACHINE")"
-REGISTRY="$(docker-machine ip "$REGISTRY_MACHINE"):5000"
+REGISTRY_MACHINE='registry'
+eval "$(docker-machine env $REGISTRY_MACHINE)"
+REGISTRY="$(docker-machine ip $REGISTRY_MACHINE):5000"
 
 sleep 3
 
@@ -22,7 +22,7 @@ if ! docker ps | grep 'registry:2'; then
     docker run -d -p 5000:5000 --restart=always --name registry registry:2
 fi
 
-SECTION 'Define'
+section 'Define'
 
 SWARM_MASTER='node-01'
 NET_LOCAL='swarm-local'
@@ -46,25 +46,10 @@ DB_SCALE='1'
 PROXY_NAME='proxy'
 PROXY_IMAGE='dockercloud/haproxy:1.6.2'
 
-eval "$(docker-machine env $SWARM_MASTER)"
-
-SECTION 'Networks'
-
-log "create '$NET_LOCAL'"
-docker network create \
-    --driver overlay \
-    --subnet=10.0.9.0/24 \
-    "$NET_LOCAL" || true
-
-log "create '$NET_PUBLIC'"
-docker network create \
-    --driver overlay \
-    --subnet=10.0.9.0/24 \
-    "$NET_PUBLIC" || true
-
 sleep 3
 
-SECTION 'Services'
+section 'Services'
+eval "$(docker-machine env $SWARM_MASTER)"
 
 for SERVICE_ID in $(docker service ls -q); do
     docker service rm "$SERVICE_ID";
@@ -74,6 +59,7 @@ log "create '$PROXY_NAME'"
 docker service create \
     --name $PROXY_NAME \
     --mode global \
+    --constraint 'node.role==manager' \
     --network $NET_PUBLIC \
     --mount target=/var/run/docker.sock,source=/var/run/docker.sock,type=bind \
     -p 80:80 \
@@ -87,8 +73,8 @@ log "create '$DB_NAME'"
 docker service create \
     --name $DB_NAME \
     --replicas $DB_SCALE \
-    --network $NET_LOCAL \
     --constraint 'node.role!=manager' \
+    --network $NET_LOCAL \
     "$DB_IMAGE"
 
 sleep 3
@@ -97,10 +83,11 @@ log "create '$APP_NAME'"
 docker service create \
     --name $APP_NAME \
     --replicas $APP_SCALE \
+    --constraint 'node.role!=manager' \
     --network $NET_LOCAL \
     --network $NET_PUBLIC \
-    --constraint 'node.role!=manager' \
-    -e DB="$DB_NAME" \
+    -p 5000:5000 \
+    -e DB=$DB_NAME \
     -e SERVICE_PORTS=$APP_PORT \
     -e VIRTUAL_HOST=$APP_HOST \
     "$APP_IMAGE"
@@ -111,20 +98,21 @@ log "create '$WEB_NAME'"
 docker service create \
     --name $WEB_NAME \
     --replicas $WEB_SCALE \
+    --constraint 'node.role!=manager' \
     --network $NET_LOCAL \
     --network $NET_PUBLIC \
-    --constraint 'node.role!=manager' \
+    -p 9000:9000 \
     -e SERVICE_PORTS=$WEB_PORT \
     -e DB=$DB_NAME \
     "$WEB_IMAGE"
 
-sleep 5
+sleep 3
 
 docker node ls
 for SERVICE_ID in $(docker service ls -q); do
     docker service ps "$SERVICE_ID";
 done
 
-SWARM_IP="$(docker-machine ip "$SWARM_MASTER")"
+SWARM_IP="$(docker-machine ip $SWARM_MASTER)"
 log "swarm ip: $SWARM_IP"
 open "http://$SWARM_IP" -a 'Google Chrome'

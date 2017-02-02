@@ -24,7 +24,6 @@ create_machine() {
         fi
     else
         docker-machine create -d virtualbox \
-            --virtualbox-boot2docker-url "file://$HOME/.docker/machine/1.12.5.iso" \
             --virtualbox-memory 1024 \
             --virtualbox-cpu-count 1 \
             --virtualbox-no-share \
@@ -35,7 +34,7 @@ create_machine() {
 
 section 'Prepare'
 
-REGISTRY_MACHINE='default'
+REGISTRY_MACHINE='registry'
 create_machine "$REGISTRY_MACHINE"
 eval "$(docker-machine env $REGISTRY_MACHINE)"
 REGISTRY="$(docker-machine ip $REGISTRY_MACHINE):5000"

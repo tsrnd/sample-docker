@@ -12,9 +12,14 @@ log() {
 
 clear
 
+section 'Define'
+
+NET_LOCAL='swarm-local'
+NET_PUBLIC='swarm-public'
+
 section 'Prepare'
 
-REGISTRY_MACHINE='default'
+REGISTRY_MACHINE='registry'
 docker-machine start "$REGISTRY_MACHINE" || true
 eval "$(docker-machine env $REGISTRY_MACHINE)"
 REGISTRY="$(docker-machine ip $REGISTRY_MACHINE):5000"
@@ -60,13 +65,13 @@ section 'Swarm'
 TOKEN=''
 SWARM_IP="$(docker-machine ip $SWARM_MASTER)"
 for NODE in "${SWARM_NODES[@]}"; do
-    if ! docker-machine env "$NODE" ; then
+    if ! docker-machine env "$NODE" > /dev/null ; then
         docker-machine regenerate-certs "$NODE" -f
     fi
     eval "$(docker-machine env "$NODE")"
     log 'remove old containers'
     docker ps -aq | xargs docker rm -f
-    if [[ $NODE == "$SWARM_MASTER" ]]; then
+    if [[ "$NODE" == "$SWARM_MASTER" ]]; then
         docker swarm init --advertise-addr "$SWARM_IP" --listen-addr "$SWARM_IP:2377" || true
         log 'get swarm join-token'
         TOKEN="$(docker swarm join-token -q worker)"
@@ -75,7 +80,30 @@ for NODE in "${SWARM_NODES[@]}"; do
     fi
 done
 
+eval "$(docker-machine env $SWARM_MASTER)"
+
+section 'Networks'
+
+log "create '$NET_LOCAL'"
+docker network create \
+    --driver overlay \
+    --subnet=10.0.9.0/24 \
+    "$NET_LOCAL" || true
+
+log "create '$NET_PUBLIC'"
+docker network create \
+    --driver overlay \
+    --subnet=10.0.9.0/24 \
+    "$NET_PUBLIC" || true
+
+while true; do
+    if docker network ls | grep "$NET_LOCAL" && docker network ls | grep "$NET_PUBLIC"; then
+        break
+    fi
+    log 'waiting for networks'
+    sleep 3
+done
+
 section 'Info'
 
-eval "$(docker-machine env "$SWARM_MASTER")"
 docker node ls

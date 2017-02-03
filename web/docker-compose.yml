@@ -28,7 +28,7 @@ services:
     volumes_from:
       - app
     volumes:
-      - ./logs/nginx/:/var/log/nginx
+      - ./logs/nginx:/var/log/nginx
     ports:
       - "9080:80"
     links:
@@ -46,9 +46,8 @@ services:
       - "13306:3306"
     environment:
       MYSQL_DATABASE: app
-      MYSQL_USER: root
+      MYSQL_USER: app
       MYSQL_PASSWORD: secret
-      MYSQL_ROOT_PASSWORD: root@secret123
   redis:
     build: ./redis
     volumes_from:

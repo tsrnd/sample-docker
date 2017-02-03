@@ -6,7 +6,6 @@
         "**/.svn": true,
         "**/.hg": true,
         "**/.DS_Store": true,
-        "**/.dockerignore": true,
         "**/.gitignore": true,
         "**/.node-version": true,
         "**/.gitattributes": true,

@@ -84,7 +84,7 @@ services:
         volumes_from:
             - applications
         volumes:
-            - ./logs/nginx/:/var/log/nginx
+            - /logs/nginx/:/var/log/nginx
             - ./laradock/nginx/sites/:/etc/nginx/sites-available
         ports:
             - "80:80"

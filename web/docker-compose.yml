@@ -15,14 +15,14 @@ services:
         build:
             context: ./laradock/workspace
             args:
-                - INSTALL_XDEBUG=false
+                - INSTALL_XDEBUG=true
                 - INSTALL_MONGO=false
-                - INSTALL_NODE=false
-                - INSTALL_YARN=false
+                - INSTALL_NODE=true
+                - INSTALL_YARN=true
                 - INSTALL_DRUSH=false
                 - INSTALL_AEROSPIKE_EXTENSION=false
                 - INSTALL_V8JS_EXTENSION=false
-                - COMPOSER_GLOBAL_INSTALL=false
+                - COMPOSER_GLOBAL_INSTALL=true
                 - INSTALL_WORKSPACE_SSH=false
                 - INSTALL_LARAVEL_ENVOY=false
                 - INSTALL_DEPLOYER=false
@@ -61,6 +61,8 @@ services:
             dockerfile: Dockerfile-70
         volumes_from:
             - applications
+        volumes:
+            - ./php-fpm.conf:/etc/php7/php-fpm.conf
         expose:
             - "9000"
         links:
@@ -83,7 +85,7 @@ services:
             - applications
         volumes:
             - ./logs/nginx/:/var/log/nginx
-            - ./nginx/sites/:/etc/nginx/sites-available
+            - ./laradock/nginx/sites/:/etc/nginx/sites-available
         ports:
             - "80:80"
             - "443:443"
@@ -109,14 +111,14 @@ services:
 
 ### HHVM Container ##########################################
 
-    hhvm:
-        build: ./laradock/hhvm
-        volumes_from:
-            - applications
-        expose:
-            - "9000"
-        links:
-            - workspace
+    # hhvm:
+    #     build: ./laradock/hhvm
+    #     volumes_from:
+    #         - applications
+    #     expose:
+    #         - "9000"
+    #     links:
+    #         - workspace
 
 ### MySQL Container #########################################
 
@@ -124,10 +126,10 @@ services:
         build:
             context: ./laradock/mysql
             args:
-                - MYSQL_DATABASE=homestead
-                - MYSQL_USER=homestead
-                - MYSQL_PASSWORD=secret
-                - MYSQL_ROOT_PASSWORD=root
+                - MYSQL_DATABASE=master
+                - MYSQL_USER=api
+                - MYSQL_PASSWORD=api@secret
+                - MYSQL_ROOT_PASSWORD=root@secret
         volumes:
             - mysql:/var/lib/mysql
         ports:
@@ -294,9 +296,9 @@ services:
         build: ./laradock/phpmyadmin
         environment:
             PMA_ARBITRARY: 1
-            MYSQL_USER: homestead
-            MYSQL_PASSWORD: secret
-            MYSQL_ROOT_PASSWORD: root
+            MYSQL_USER: api
+            MYSQL_PASSWORD: api@secret
+            MYSQL_ROOT_PASSWORD: root@secret
         ports:
             - "8080:80"
         links:
@@ -353,8 +355,8 @@ volumes:
     #     driver: "local"
     # rethinkdb:
     #     driver: "local"
-    phpmyadmin:
-        driver: "local"
+    # phpmyadmin:
+    #     driver: "local"
     # aerospike:
     #     driver: "local"
     # caddy:

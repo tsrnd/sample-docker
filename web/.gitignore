@@ -1,3 +1,4 @@
 node_modules
-/vendor
-.env
+vendor
+_ide_helper.php
+.phpstorm.meta.php

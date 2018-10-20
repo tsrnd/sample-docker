@@ -1,4 +1,4 @@
-# TS_Server
+# Sample Scaling with Docker Swarm
 
 1. [x] Local host (1 concurrent users)
 
